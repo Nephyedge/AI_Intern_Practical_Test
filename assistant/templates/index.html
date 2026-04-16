@@ -8,7 +8,6 @@
         :root { --primary: #0f766e; --bg: #f8fafc; --text: #334155; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; }
         
-        /* Navigation */
         nav { background: var(--primary); padding: 1rem 2rem; display: flex; gap: 1rem; color: white; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         nav h1 { margin: 0; font-size: 1.2rem; margin-right: auto; }
         nav button { background: transparent; border: 1px solid white; color: white; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; transition: 0.2s; }
@@ -17,42 +16,31 @@
         .container { max-width: 1000px; margin: 2rem auto; padding: 0 1rem; }
         .card { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
         
-        /* Form Styling */
         textarea { width: 100%; height: 100px; padding: 0.75rem; margin-bottom: 1rem; border: 1px solid #cbd5e1; border-radius: 4px; font-family: inherit; box-sizing: border-box; resize: vertical; }
         .btn { background: var(--primary); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 4px; cursor: pointer; font-weight: 600; transition: 0.2s; }
         .btn:hover { background: #0d9488; }
         .btn:disabled { background: #94a3b8; cursor: not-allowed; }
 
-        /* Dashboard Table */
         table { width: 100%; border-collapse: collapse; margin-top: 1rem; background: white; }
         th, td { border-bottom: 1px solid #e2e8f0; padding: 14px; text-align: left; }
         th { background-color: #f1f5f9; font-weight: 600; color: #475569; }
         
-        /* Clickable Row Logic */
         .clickable-row { cursor: pointer; transition: background 0.2s; }
         .clickable-row:hover { background-color: #f1f5f9 !important; }
+        .status-select { padding: 4px 8px; border-radius: 4px; border: 1px solid #cbd5e1; background: white; }
 
-        /* Status Select Styling */
-        .status-select { padding: 4px 8px; border-radius: 4px; border: 1px solid #cbd5e1; background: white; cursor: default; }
-
-        /* Modal / Popup */
         .modal { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(2px); }
         .modal-content { background: white; margin: 10% auto; padding: 2rem; border-radius: 12px; width: 90%; max-width: 550px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); position: relative; animation: slideIn 0.3s ease-out; }
         @keyframes slideIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .close-btn { position: absolute; top: 1rem; right: 1rem; font-size: 1.5rem; cursor: pointer; color: #94a3b8; }
-        .close-btn:hover { color: #334155; }
 
-        /* AI Reasoning Box */
         .reasoning-box { background: #f1f5f9; padding: 1.2rem; border-radius: 8px; margin-bottom: 1.5rem; border-left: 4px solid #94a3b8; }
-        .reasoning-header { margin: 0 0 0.5rem 0; font-size: 0.75rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; font-weight: bold; }
+        .reasoning-header { margin: 0 0 0.5rem 0; font-size: 0.75rem; color: #64748b; text-transform: uppercase; font-weight: bold; }
         .reasoning-text { margin: 0; font-size: 0.9rem; line-height: 1.5; color: #334155; font-style: italic; }
 
-        /* Result Area */
         #result-area { margin-top: 2rem; border-top: 2px solid #e2e8f0; padding-top: 2rem; display: none; }
-        .message-box { background: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid var(--primary); padding: 1rem; margin-bottom: 1rem; white-space: pre-wrap; font-size: 0.9rem; border-radius: 0 4px 4px 0; }
+        .message-box { background: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid var(--primary); padding: 1rem; margin-bottom: 1rem; white-space: pre-wrap; font-size: 0.9rem; }
         .risk-badge { display: inline-block; padding: 4px 10px; border-radius: 9999px; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; }
-        
-        /* Steps List */
         .steps-list { padding-left: 1.25rem; margin-top: 1rem; }
         .steps-list li { margin-bottom: 0.75rem; color: #475569; line-height: 1.4; }
     </style>
@@ -68,7 +56,7 @@
     <div class="container">
         <div id="new-task-view" class="card view-section">
             <h2 style="margin-top:0">Initiate a Diaspora Request</h2>
-            <p style="color: #64748b">Submit your request in plain English. Our AI will handle the extraction, risk assessment, and routing.</p>
+            <p style="color: #64748b">Submit your request in plain English. The AI will extract intent, risk, and generate steps.</p>
             <textarea id="taskInput" placeholder="e.g., I need to transfer 4,500 USD to Peter Kamau for the townhouse project in Nairobi..."></textarea>
             <button id="submitBtn" class="btn" onclick="submitTask()">Analyze & Process</button>
 
@@ -78,19 +66,15 @@
                     <span id="res-risk" class="risk-badge"></span>
                 </div>
                 <p><strong>Intent:</strong> <span id="res-intent"></span> | <strong>Assigned Team:</strong> <span id="res-team"></span></p>
-                
-                <h4 style="margin-bottom: 0.5rem;">Communication Previews</h4>
-                <p style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 1rem;">These professional messages have been prepared for immediate dispatch.</p>
-                
-                <strong>WhatsApp Message</strong><div id="res-whatsapp" class="message-box"></div>
+                <strong>WhatsApp</strong><div id="res-whatsapp" class="message-box"></div>
                 <strong>Official Email</strong><div id="res-email" class="message-box"></div>
-                <strong>SMS Notification</strong><div id="res-sms" class="message-box"></div>
+                <strong>SMS</strong><div id="res-sms" class="message-box"></div>
             </div>
         </div>
 
         <div id="dashboard-view" class="card view-section" style="display: none;">
             <h2 style="margin-top:0">Operational Dashboard</h2>
-            <p style="color: #64748b; font-size: 0.9rem;">Click on any row to view the detailed <strong>AI Logic Analysis</strong> and operational steps.</p>
+            <p style="color: #64748b; font-size: 0.9rem;">Click any row to view <strong>AI Logic Breakdown</strong> and steps.</p>
             <table id="taskTable">
                 <thead>
                     <tr>
@@ -99,7 +83,7 @@
                         <th>Risk</th>
                         <th>Assigned Team</th>
                         <th>Status</th>
-                        <th>Date</th>
+                        <th>Created At</th>
                     </tr>
                 </thead>
                 <tbody id="task-tbody"></tbody>
@@ -136,11 +120,9 @@
         async function submitTask() {
             const input = document.getElementById('taskInput').value;
             if (!input.trim()) return alert("Please describe your request.");
-
             const btn = document.getElementById('submitBtn');
             btn.innerText = "Analyzing Context...";
             btn.disabled = true;
-            document.getElementById('result-area').style.display = 'none';
 
             try {
                 const response = await fetch('/api/process/', {
@@ -149,7 +131,6 @@
                     body: JSON.stringify({ request_text: input })
                 });
                 const result = await response.json();
-
                 if (result.status === 'success') {
                     document.getElementById('res-code').innerText = result.task_code;
                     document.getElementById('res-intent').innerText = result.data.intent.replace('_', ' ');
@@ -157,36 +138,36 @@
                     document.getElementById('res-whatsapp').innerText = result.data.messages.whatsapp;
                     document.getElementById('res-email').innerText = result.data.messages.email;
                     document.getElementById('res-sms').innerText = result.data.messages.sms;
-
                     const risk = result.risk_score;
                     const rBadge = document.getElementById('res-risk');
                     rBadge.innerText = `Risk: ${risk}/100`;
                     rBadge.style.backgroundColor = risk > 50 ? '#fee2e2' : '#dcfce7';
                     rBadge.style.color = risk > 50 ? '#991b1b' : '#166534';
-
                     document.getElementById('result-area').style.display = 'block';
                     document.getElementById('taskInput').value = '';
                 }
-            } catch (e) { alert("Server error. Check your connection."); }
+            } catch (e) { alert("Server error."); }
             finally { btn.innerText = "Analyze & Process"; btn.disabled = false; }
         }
 
         async function loadDashboard() {
             const tbody = document.getElementById('task-tbody');
             tbody.innerHTML = '<tr><td colspan="6">Syncing tasks...</td></tr>';
-
             try {
                 const response = await fetch('/api/tasks/');
                 const data = await response.json();
                 allTasks = data.tasks;
-                
                 tbody.innerHTML = '';
                 allTasks.forEach(task => {
                     const row = document.createElement('tr');
                     row.className = 'clickable-row';
                     row.addEventListener('click', () => openTaskModal(task.task_code));
 
-                    const dateStr = new Date(task.created_at).toLocaleDateString();
+                    // FIX: Shows both Date and Time (e.g., 16 Apr 2026, 16:54)
+                    const timeStr = new Date(task.created_at).toLocaleString('en-GB', {
+                        day: '2-digit', month: 'short', year: 'numeric',
+                        hour: '2-digit', minute: '2-digit'
+                    });
                     
                     row.innerHTML = `
                         <td><strong>${task.task_code}</strong></td>
@@ -200,57 +181,40 @@
                                 <option value="Completed" ${task.status === 'Completed' ? 'selected' : ''}>Completed</option>
                             </select>
                         </td>
-                        <td>${dateStr}</td>
+                        <td>${timeStr}</td>
                     `;
                     tbody.appendChild(row);
                 });
-            } catch (e) { tbody.innerHTML = '<tr><td colspan="6" style="color:red">Failed to load dashboard.</td></tr>'; }
+            } catch (e) { tbody.innerHTML = '<tr><td colspan="6">Error loading data.</td></tr>'; }
         }
 
         function openTaskModal(code) {
             const task = allTasks.find(t => t.task_code === code);
             if (!task) return;
-
             document.getElementById('modalTitle').innerText = task.task_code;
             document.getElementById('modalMeta').innerText = `Intent: ${task.intent.replace('_', ' ')} | Team: ${task.assigned_team}`;
-            
-            // Set the Reasoning / Logic Analysis
-            document.getElementById('modalReasoning').innerText = task.reasoning || "AI analysis complete: Identified intent and mapped to corresponding operational protocol.";
-
+            document.getElementById('modalReasoning').innerText = task.reasoning || "Analysis complete.";
             const stepsUl = document.getElementById('modalSteps');
             stepsUl.innerHTML = '';
-            
-            const steps = Array.isArray(task.steps) ? task.steps : [];
-            if (steps.length === 0) {
-                stepsUl.innerHTML = '<li>No specific operational steps generated.</li>';
-            } else {
-                steps.forEach(s => {
-                    const li = document.createElement('li');
-                    li.innerText = s;
-                    stepsUl.appendChild(li);
-                });
-            }
+            (Array.isArray(task.steps) ? task.steps : []).forEach(s => {
+                const li = document.createElement('li');
+                li.innerText = s;
+                stepsUl.appendChild(li);
+            });
             document.getElementById('taskModal').style.display = 'block';
         }
 
-        function closeModal() {
-            document.getElementById('taskModal').style.display = 'none';
-        }
+        function closeModal() { document.getElementById('taskModal').style.display = 'none'; }
 
         async function updateTaskStatus(id, newStatus) {
-            try {
-                await fetch(`/api/tasks/${id}/status/`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ status: newStatus })
-                });
-            } catch (e) { alert("Status update failed."); }
+            await fetch(`/api/tasks/${id}/status/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: newStatus })
+            });
         }
 
-        window.onclick = function(event) {
-            const modal = document.getElementById('taskModal');
-            if (event.target == modal) closeModal();
-        }
+        window.onclick = function(e) { if (e.target == document.getElementById('taskModal')) closeModal(); }
     </script>
 </body>
 </html>
