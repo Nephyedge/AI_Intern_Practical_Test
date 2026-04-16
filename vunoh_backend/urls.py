@@ -1,8 +1,16 @@
 from django.contrib import admin
 from django.urls import path
+from django.http import HttpResponse # Add this import
 from assistant import views 
 
+# A simple function to return 200 OK
+def health_check(request):
+    return HttpResponse("ok")
+
 urlpatterns = [
+    # Health Check for Render
+    path('healthz', health_check), # Add this line
+    
     # Default Admin Route
     path('admin/', admin.site.urls),
     
