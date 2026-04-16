@@ -28,6 +28,8 @@ class Task(models.Model):
     # Routing
     assigned_team = models.CharField(max_length=100)
 
+    reasoning = models.TextField(blank=True, null=True) # Add this line
+
     def save(self, *args, **kwargs):
         if not self.task_code:
             # Generate a unique task code like VN-A1B2C3

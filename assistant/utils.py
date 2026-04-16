@@ -6,36 +6,40 @@ from dotenv import load_dotenv
 load_dotenv()
 
 def process_with_gemini(user_input):
-    """
-    Using Groq for sub-second inference speed. 
-    Function name kept as 'process_with_gemini' to avoid breaking views.py.
-    """
     client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
-    
     model_id = "llama-3.3-70b-versatile" 
 
-    # 3. Create the System Instruction (Updated for Professional Tone)
+    # We update the REASONING constraint to be more analytical
     system_prompt = """
-    You are a Vunoh Global Assistant. You help the Kenyan diaspora manage tasks back home.
+    You are the Vunoh Global Assistant. You help the Kenyan diaspora manage tasks back home accurately and professionally.
+    
     Analyze the user's request and return ONLY a valid JSON object.
     
-    CRITICAL MESSAGE RULES:
-    1. STERNLY FORBIDDEN: Do not use any emojis or informal greetings (e.g., 'Hey', '🤑').
-    2. TONE: Highly professional, corporate, and reliable.
-    3. WHATSAPP FORMAT: Must include the Amount and Currency clearly. 
-       Example: 'Your request to send [Amount] [Currency] to [Recipient] has been received. Task Code: [Task Code].'
-    4. EMAIL: Subject line must be 'Task Confirmation: [Task Code]'. Use a formal letter structure: 'Dear [Customer Name],' then a body paragraph, then 'Regards, Vunoh Global Support'.
-    5. SMS: Maximum 160 characters. Format must be: "Vunoh Global: [Task Code]. Request to send [Amount] [Currency] to [Recipient Name] is [Status]. Details: [Link/Action]."
+    CRITICAL CONSTRAINTS:
+    1. NO EMOJIS: Do not use emojis anywhere.
+    2. TONE: Formal and corporate.
+    3. DYNAMIC REASONING: In the 'reasoning' field, provide a step-by-step breakdown of how you arrived at the conclusion. 
+       - Mention specific keywords from the user's input that triggered the 'intent'.
+       - Explain why the chosen 'employee_assignment' is the most appropriate for this specific context.
+       - Briefly justify why the generated 'steps' are necessary for the Kenyan legal or operational environment.
 
     Required JSON Schema:
     {
-      "intent": "send_money, get_airport_transfer, hire_service, verify_document, check_status",
-      "entities": {"amount": float, "currency": "string", "location": "string", "document_type": "string", "urgency": "string"},
-      "steps": ["Step 1", "Step 2", "Step 3"],
+      "intent": "exactly one of: send_money, get_airport_transfer, hire_service, verify_document, check_status",
+      "entities": {
+        "amount": float or null,
+        "currency": "string or null",
+        "location": "string or null",
+        "recipient": "string or null",
+        "document_type": "string or null",
+        "urgency": "high, medium, or low"
+      },
+      "reasoning": "Step-by-step logical breakdown of intent identification and operational choices.",
+      "steps": ["Step 1", "Step 2", "Step 3", "Step 4"],
       "messages": {
-        "whatsapp": "Professional status update regarding the specific request. No emojis.",
-        "email": "Full formal email with Subject, Salutation, Body, and Sign-off.",
-        "sms": "Concise notification under 160 chars starting with 'Vunoh Global:'"
+        "whatsapp": "Professional summary. No emojis.",
+        "email": "Formal email with Subject line: 'Task Confirmation: [Task Code]'",
+        "sms": "Brief notification starting with 'Vunoh Global: [Task Code]'"
       },
       "employee_assignment": "Finance, Operations, or Legal"
     }
@@ -44,18 +48,12 @@ def process_with_gemini(user_input):
     try:
         chat_completion = client.chat.completions.create(
             messages=[
-                {
-                    "role": "system",
-                    "content": system_prompt,
-                },
-                {
-                    "role": "user",
-                    "content": user_input,
-                }
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_input}
             ],
             model=model_id,
             temperature=0.1, 
-            response_format={"type": "json_object"}
+            response_format={"type": "json_object"} 
         )
 
         raw_response = chat_completion.choices[0].message.content
