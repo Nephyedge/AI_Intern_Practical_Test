@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vunoh Global Assistant</title>
+    <style>
+        /* Clean, Modern CSS */
+        :root { --primary: #0f766e; --bg: #f8fafc; --text: #334155; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; }
+        nav { background: var(--primary); padding: 1rem 2rem; display: flex; gap: 1rem; color: white; align-items: center;}
+        nav h1 { margin: 0; font-size: 1.2rem; margin-right: auto; }
+        nav button { background: transparent; border: 1px solid white; color: white; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; }
+        nav button:hover { background: rgba(255,255,255,0.1); }
+        .container { max-width: 1000px; margin: 2rem auto; padding: 0 1rem; }
+        .card { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        textarea { width: 100%; height: 100px; padding: 0.75rem; margin-bottom: 1rem; border: 1px solid #cbd5e1; border-radius: 4px; font-family: inherit; box-sizing: border-box;}
+        .btn { background: var(--primary); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 4px; cursor: pointer; font-weight: 600; }
+        .btn:hover { background: #0d9488; }
+        .btn:disabled { background: #94a3b8; cursor: not-allowed; }
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: 0.9rem; }
+        th, td { border-bottom: 1px solid #e2e8f0; padding: 12px; text-align: left; }
+        th { background-color: #f1f5f9; font-weight: 600; }
+        select { padding: 4px; border-radius: 4px; }
+        
+        /* Message Results Styling */
+        #result-area { margin-top: 2rem; display: none; }
+        .message-box { background: #f1f5f9; border-left: 4px solid var(--primary); padding: 1rem; margin-bottom: 1rem; white-space: pre-wrap; }
+        .risk-badge { display: inline-block; padding: 4px 8px; border-radius: 12px; font-weight: bold; font-size: 0.8rem;}
+    </style>
+</head>
+<body>
+
+    <nav>
+        <h1>Vunoh Global</h1>
+        <button onclick="switchView('new-task-view')">New Task</button>
+        <button onclick="switchView('dashboard-view')">Dashboard</button>
+    </nav>
+
+    <div class="container">
+        <div id="new-task-view" class="card view-section">
+            <h2>Initiate a Request</h2>
+            <p>Type a natural language request. The AI will extract the intent, assess risk, and generate tasks.</p>
+            <textarea id="taskInput" placeholder="e.g., I need to urgently send KES 45,000 to my brother in Nairobi..."></textarea>
+            <button id="submitBtn" class="btn" onclick="submitTask()">Process Request</button>
+
+            <div id="result-area">
+                <h3>Task Created: <span id="res-code"></span></h3>
+                <p><strong>Intent:</strong> <span id="res-intent"></span> | <strong>Assigned:</strong> <span id="res-team"></span></p>
+                <p><strong>Risk Score:</strong> <span id="res-risk" class="risk-badge"></span></p>
+                
+                <h4>Generated Messages</h4>
+                <strong>WhatsApp:</strong><div id="res-whatsapp" class="message-box"></div>
+                <strong>Email:</strong><div id="res-email" class="message-box"></div>
+                <strong>SMS:</strong><div id="res-sms" class="message-box"></div>
+            </div>
+        </div>
+
+        <div id="dashboard-view" class="card view-section" style="display: none;">
+            <h2>Task Dashboard</h2>
+            <table id="taskTable">
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Intent</th>
+                        <th>Risk Score</th>
+                        <th>Team</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // View Router
+        function switchView(viewId) {
+            document.querySelectorAll('.view-section').forEach(el => el.style.display = 'none');
+            document.getElementById(viewId).style.display = 'block';
+            if (viewId === 'dashboard-view') loadDashboard();
+        }
+
+        // Submit AI Task
+        async function submitTask() {
+            const input = document.getElementById('taskInput').value;
+            if (!input) return alert("Please enter a request");
+
+            const btn = document.getElementById('submitBtn');
+            btn.innerText = "Processing AI...";
+            btn.disabled = true;
+            document.getElementById('result-area').style.display = 'none';
+
+            try {
+                const response = await fetch('/api/process/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ request_text: input })
+                });
+                
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    // Populate results UI
+                    document.getElementById('res-code').innerText = result.task_code;
+                    document.getElementById('res-intent').innerText = result.data.intent;
+                    document.getElementById('res-team').innerText = result.data.employee_assignment;
+                    document.getElementById('res-whatsapp').innerText = result.data.messages.whatsapp;
+                    document.getElementById('res-email').innerText = result.data.messages.email;
+                    document.getElementById('res-sms').innerText = result.data.messages.sms;
+                    
+                    const risk = result.data.risk_score || result.risk_score || 0; // fallback depending on response mapping
+                    const riskEl = document.getElementById('res-risk');
+                    riskEl.innerText = risk + "/100";
+                    riskEl.style.backgroundColor = risk > 40 ? '#fecaca' : '#bbf7d0'; // Red if high, green if low
+                    riskEl.style.color = risk > 40 ? '#991b1b' : '#166534';
+
+                    document.getElementById('result-area').style.display = 'block';
+                    document.getElementById('taskInput').value = ''; // clear
+                } else {
+                    alert("Error: " + result.error);
+                }
+            } catch (err) {
+                console.error(err);
+                alert("An error occurred hitting the API.");
+            } finally {
+                btn.innerText = "Process Request";
+                btn.disabled = false;
+            }
+        }
+
+        // Load Dashboard Data
+        async function loadDashboard() {
+            const tbody = document.querySelector('#taskTable tbody');
+            tbody.innerHTML = '<tr><td colspan="6">Loading tasks...</td></tr>';
+
+            try {
+                const response = await fetch('/api/tasks/');
+                const data = await response.json();
+                
+                tbody.innerHTML = '';
+                data.tasks.forEach(task => {
+                    const date = new Date(task.created_at).toLocaleDateString();
+                    
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><strong>${task.task_code}</strong></td>
+                        <td>${task.intent}</td>
+                        <td>${task.risk_score}</td>
+                        <td>${task.assigned_team}</td>
+                        <td>
+                            <select onchange="updateStatus(${task.id}, this.value)">
+                                <option value="Pending" ${task.status === 'Pending' ? 'selected' : ''}>Pending</option>
+                                <option value="In Progress" ${task.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
+                                <option value="Completed" ${task.status === 'Completed' ? 'selected' : ''}>Completed</option>
+                            </select>
+                        </td>
+                        <td>${date}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                tbody.innerHTML = '<tr><td colspan="6" style="color:red;">Failed to load data.</td></tr>';
+            }
+        }
+
+        // Update Task Status
+        async function updateStatus(taskId, newStatus) {
+            try {
+                await fetch(`/api/tasks/${taskId}/status/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: newStatus })
+                });
+                // Optionally show a small toast notification here
+            } catch (err) {
+                alert("Failed to update status");
+                loadDashboard(); // revert on failure
+            }
+        }
+    </script>
+</body>
+</html>
