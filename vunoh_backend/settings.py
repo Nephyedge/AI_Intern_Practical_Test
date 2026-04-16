@@ -35,7 +35,8 @@ DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
 # Space-separated hosts. Examples:
 # - local: "localhost 127.0.0.1"
 # - Render: "your-service.onrender.com"
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost 127.0.0.1").split()
+# Use '*' to allow all for the test, or add your specific render .com URL
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
