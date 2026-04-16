@@ -10,42 +10,38 @@ def process_with_gemini(user_input):
     Using Groq for sub-second inference speed. 
     Function name kept as 'process_with_gemini' to avoid breaking views.py.
     """
-    # 1. Initialize the Groq Client
-    # Ensure 'GROQ_API_KEY' is in your .env file
     client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
     
-    # 2. Define the Model (Llama 3.3 70B is great for reasoning)
     model_id = "llama-3.3-70b-versatile" 
 
-    # 3. Create the System Instruction
+    # 3. Create the System Instruction (Updated for Professional Tone)
     system_prompt = """
-    You are a Vunoh Global Assistant. You help the Kenyan diaspora manage tasks.
+    You are a Vunoh Global Assistant. You help the Kenyan diaspora manage tasks back home.
     Analyze the user's request and return ONLY a valid JSON object.
     
-    The 'risk_score' field is NOT required here as it is calculated in views.py.
-    
+    CRITICAL MESSAGE RULES:
+    1. STERNLY FORBIDDEN: Do not use any emojis or informal greetings (e.g., 'Hey', '🤑').
+    2. TONE: Highly professional, corporate, and reliable.
+    3. WHATSAPP FORMAT: Must include the Amount and Currency clearly. 
+       Example: 'Your request to send [Amount] [Currency] to [Recipient] has been received. Task Code: [Task Code].'
+    4. EMAIL: Subject line must be 'Task Confirmation: [Task Code]'. Use a formal letter structure: 'Dear [Customer Name],' then a body paragraph, then 'Regards, Vunoh Global Support'.
+    5. SMS: Maximum 160 characters. Format must be: "Vunoh Global: [Task Code]. Request to send [Amount] [Currency] to [Recipient Name] is [Status]. Details: [Link/Action]."
+
     Required JSON Schema:
     {
-      "intent": "exactly one of: send_money, get_airport_transfer, hire_service, verify_document, check_status",
-      "entities": {
-        "amount": numeric or null,
-        "currency": "string or null",
-        "location": "string or null",
-        "document_type": "string or null",
-        "urgency": "high, medium, or low"
-      },
+      "intent": "send_money, get_airport_transfer, hire_service, verify_document, check_status",
+      "entities": {"amount": float, "currency": "string", "location": "string", "document_type": "string", "urgency": "string"},
       "steps": ["Step 1", "Step 2", "Step 3"],
       "messages": {
-        "whatsapp": "Conversational, use emojis and line breaks.",
-        "email": "Formal, structured professional email.",
-        "sms": "Brief, under 160 characters."
+        "whatsapp": "Professional status update regarding the specific request. No emojis.",
+        "email": "Full formal email with Subject, Salutation, Body, and Sign-off.",
+        "sms": "Concise notification under 160 chars starting with 'Vunoh Global:'"
       },
-      "employee_assignment": "Finance, Operations, or Legal based on the intent."
+      "employee_assignment": "Finance, Operations, or Legal"
     }
     """
 
     try:
-        # 4. Request completion from Groq
         chat_completion = client.chat.completions.create(
             messages=[
                 {
@@ -58,14 +54,12 @@ def process_with_gemini(user_input):
                 }
             ],
             model=model_id,
-            temperature=0.1, # Low temperature for consistent JSON
-            response_format={"type": "json_object"} # Forces valid JSON
+            temperature=0.1, 
+            response_format={"type": "json_object"}
         )
 
-        # 5. Parse and return the content
         raw_response = chat_completion.choices[0].message.content
         return json.loads(raw_response)
 
     except Exception as e:
-        # If something goes wrong, we raise an error so views.py can catch it
         raise Exception(f"Groq API Error: {str(e)}")
