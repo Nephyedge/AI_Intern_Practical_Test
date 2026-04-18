@@ -74,12 +74,12 @@ def process_task(request):
             # 2. Dynamic Risk Calculation
             calculated_risk = calculate_risk_score(ai_data.get('intent'), ai_data.get('entities'))
             
-            # 3. Create Task with Reasoning field
+            # Inside your process_task function
             task = Task.objects.create(
                 intent=ai_data.get('intent', 'unknown'),
                 entities=ai_data.get('entities', {}),
                 risk_score=calculated_risk,
-                reasoning=ai_data.get('reasoning', 'No specific analysis provided.'), # SAVING REASONING
+                reasoning=ai_data.get('reasoning', ''), # Ensure this matches the key in utils.py
                 steps=ai_data.get('steps', []),
                 assigned_team=ai_data.get('employee_assignment', 'General')
             )
