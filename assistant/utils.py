@@ -5,59 +5,106 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-def process_with_gemini(user_input):
+
+def process_with_gemini(user_input: str):
     client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
-    model_id = "llama-3.3-70b-versatile" 
+    model_id = "llama-3.3-70b-versatile"
 
-    # We update the REASONING constraint to be more analytical
     system_prompt = """
-    You are the Vunoh Global Assistant. You help the Kenyan diaspora manage tasks back home accurately and professionally.
-    
-    Analyze the user's request and return ONLY a valid JSON object.
-    
-    CRITICAL CONSTRAINTS:
-    1. NO EMOJIS: Do not use emojis anywhere.
-    2. TONE: Formal and corporate.
-    3. DYNAMIC REASONING: In the 'reasoning' field, provide a step-by-step breakdown of how you arrived at the conclusion. 
-       - Mention specific keywords from the user's input that triggered the 'intent'.
-       - Explain why the chosen 'employee_assignment' is the most appropriate for this specific context.
-       - Briefly justify why the generated 'steps' are necessary for the Kenyan legal or operational environment.
+You are the Vunoh Global Assistant. You help Kenyan diaspora customers initiate and track tasks back home.
 
-    Required JSON Schema:
-    {
-      "intent": "exactly one of: send_money, get_airport_transfer, hire_service, verify_document, check_status",
-      "entities": {
-        "amount": float or null,
-        "currency": "string or null",
-        "location": "string or null",
-        "recipient": "string or null",
-        "document_type": "string or null",
-        "urgency": "high, medium, or low"
-      },
-      "reasoning": "Step-by-step logical breakdown of intent identification and operational choices.",
-      "steps": ["Step 1", "Step 2", "Step 3", "Step 4"],
-      "messages": {
-        "whatsapp": "Professional summary. No emojis.",
-        "email": "Formal email with Subject line: 'Task Confirmation: [Task Code]'",
-        "sms": "Brief notification starting with 'Vunoh Global: [Task Code]'"
-      },
-      "employee_assignment": "Finance, Operations, or Legal"
-    }
-    """
+Return ONLY valid JSON. No markdown. No code fences. No extra keys.
 
-    try:
+INTENTS (choose exactly one):
+- send_money
+- get_airport_transfer
+- hire_service
+- verify_document
+- check_status
+
+EMPLOYEE ASSIGNMENT (choose exactly one):
+- Finance
+- Operations
+- Legal
+
+URGENCY (choose exactly one):
+- high
+- medium
+- low
+
+REASONING REQUIREMENT (must follow exactly):
+- reasoning MUST be 5–8 bullet points (as a single string with \\n line breaks).
+- Each bullet must start with "- ".
+- Must explicitly mention:
+  1) Which exact words/phrases from the user's message triggered the intent
+  2) Why the chosen intent is correct vs at least one alternative intent
+  3) Which entities were extracted and why they matter operationally
+  4) Why the employee_assignment is the correct team for Kenya context
+  5) Any risk signals noticed (urgency, large amount, land/title, unknown recipient, etc.)
+
+MESSAGES REQUIREMENT (must be clearly different):
+- whatsapp: conversational, concise, natural line breaks, MAY include 1–2 relevant emojis
+- email: formal, structured, includes: "Subject: Task Confirmation: [Task Code]"
+- sms: MUST be <= 160 characters, must include task code and key action
+
+OUTPUT JSON SCHEMA (exact keys):
+{
+  "intent": "send_money | get_airport_transfer | hire_service | verify_document | check_status",
+  "entities": {
+    "amount": 0.0,
+    "currency": "KES|USD|GBP|EUR|AED" or null,
+    "location": "string or null",
+    "recipient": "string or null",
+    "document_type": "string or null",
+    "urgency": "high|medium|low"
+  },
+  "reasoning": "string (5–8 bullets, newline separated)",
+  "steps": ["string", "string", "string", "string"],
+  "messages": {
+    "whatsapp": "string",
+    "email": "string",
+    "sms": "string"
+  },
+  "employee_assignment": "Finance|Operations|Legal"
+}
+"""
+
+    def call_llm():
         chat_completion = client.chat.completions.create(
             messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_input}
+                {"role": "system", "content": system_prompt.strip()},
+                {"role": "user", "content": user_input},
             ],
             model=model_id,
-            temperature=0.1, 
-            response_format={"type": "json_object"} 
+            temperature=0.1,
+            response_format={"type": "json_object"},
         )
+        return chat_completion.choices[0].message.content
 
-        raw_response = chat_completion.choices[0].message.content
-        return json.loads(raw_response)
+    raw_response = call_llm()
+    data = json.loads(raw_response)
 
-    except Exception as e:
-        raise Exception(f"Groq API Error: {str(e)}")
+    # ---- Optional enforcement: if reasoning is too short, retry once with a stronger nudge ----
+    reasoning = (data.get("reasoning") or "").strip()
+    bullet_count = sum(1 for line in reasoning.splitlines() if line.strip().startswith("- "))
+
+    if bullet_count < 5:
+        # One retry with explicit correction instruction
+        retry_user = (
+            user_input
+            + "\n\nIMPORTANT: Your previous reasoning was not detailed enough. "
+              "Return the same JSON schema, but ensure reasoning is 5–8 bullet points as required."
+        )
+        raw_response = client.chat.completions.create(
+            messages=[
+                {"role": "system", "content": system_prompt.strip()},
+                {"role": "user", "content": retry_user},
+            ],
+            model=model_id,
+            temperature=0.1,
+            response_format={"type": "json_object"},
+        ).choices[0].message.content
+
+        data = json.loads(raw_response)
+
+    return data

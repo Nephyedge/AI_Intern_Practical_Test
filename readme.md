@@ -164,7 +164,7 @@ This produces results like: a KES 600 low-urgency birthday transfer scores 5, a 
 ## Decisions I Made and Why
 
 ### AI tools used
-I use Groq’s Llama 3.3 70B model as my primary reasoning engine for intent extraction and task generation because it combines strong reasoning with sub-second inference speeds. This allows me to quickly interpret user inputs and generate actionable tasks while maintaining a smooth, responsive user experience.
+I use Groq’s Llama 3.3 70B model as my primary reasoning engine for intent extraction and task generation because it combines strong reasoning with sub-second inference speeds. This allows me to quickly interpret user inputs and generate actionable tasks while maintaining a smooth, responsive user experience. I initially used Gemini but the API connection was having issues and it was taking time to load requests. 
 
 ### System prompt design
 The core of the system prompt instructs the model to return only valid JSON with a fixed schema — no preamble, no explanation, no markdown fences. The schema specifies every field: `intent`, `entities` (with typed sub-fields), `risk_score`, `steps` (as an array), `whatsapp_message`, `email_message`, `sms_message`, `assigned_team`, and `reasoning`.
@@ -176,7 +176,7 @@ I excluded any instruction about tone or length for the main JSON fields, becaus
 **What I excluded deliberately:** I did not include few-shot examples in the system prompt. I tested with examples and found that Groq LLaMA 3 actually performed better without them on varied input — the examples appeared to anchor the model too rigidly to the example structure and it would misclassify requests that didn't pattern-match.
 
 ### One decision where I overrode the AI
-When I first built the risk scoring, I asked Claude to suggest a scoring rubric. It suggested a simple three-tier system: low/medium/high mapped to 25/50/75. I overrode this because it produced identical scores for very different scenarios — a KES 600 birthday transfer and a KES 500,000 unknown-recipient transfer both landed at 50.
+When I first built the risk scoring, I asked Gemini to suggest a scoring rubric. It suggested a simple three-tier system: low/medium/high mapped to 25/50/75. I overrode this because it produced identical scores for very different scenarios — a KES 600 birthday transfer and a KES 500,000 unknown-recipient transfer both landed at 60.
 
 I replaced it with a component-based additive model where amount, urgency, intent type, and recipient status each contribute independently. This produces a much wider distribution (5 to 100 in practice) and gives the Finance and Legal teams genuinely useful signal. The data in `schema.sql` shows this range — task scores vary from 5 to 100 across the 29 sample records.
 

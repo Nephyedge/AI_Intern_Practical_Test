@@ -1,220 +1,364 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vunoh Global Assistant</title>
-    <style>
-        :root { --primary: #0f766e; --bg: #f8fafc; --text: #334155; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; }
-        
-        nav { background: var(--primary); padding: 1rem 2rem; display: flex; gap: 1rem; color: white; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        nav h1 { margin: 0; font-size: 1.2rem; margin-right: auto; }
-        nav button { background: transparent; border: 1px solid white; color: white; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; transition: 0.2s; }
-        nav button:hover { background: rgba(255,255,255,0.1); }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vunoh Global Assistant</title>
+  <style>
+    :root { --primary: #0f766e; --bg: #f8fafc; --text: #334155; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; }
 
-        .container { max-width: 1000px; margin: 2rem auto; padding: 0 1rem; }
-        .card { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-        
-        textarea { width: 100%; height: 100px; padding: 0.75rem; margin-bottom: 1rem; border: 1px solid #cbd5e1; border-radius: 4px; font-family: inherit; box-sizing: border-box; resize: vertical; }
-        .btn { background: var(--primary); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 4px; cursor: pointer; font-weight: 600; transition: 0.2s; }
-        .btn:hover { background: #0d9488; }
-        .btn:disabled { background: #94a3b8; cursor: not-allowed; }
+    nav { background: var(--primary); padding: 1rem 2rem; display: flex; gap: 1rem; color: white; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    nav h1 { margin: 0; font-size: 1.2rem; margin-right: auto; }
+    nav button { background: transparent; border: 1px solid white; color: white; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; transition: 0.2s; }
+    nav button:hover { background: rgba(255,255,255,0.1); }
 
-        table { width: 100%; border-collapse: collapse; margin-top: 1rem; background: white; }
-        th, td { border-bottom: 1px solid #e2e8f0; padding: 14px; text-align: left; }
-        th { background-color: #f1f5f9; font-weight: 600; color: #475569; }
-        
-        .clickable-row { cursor: pointer; transition: background 0.2s; }
-        .clickable-row:hover { background-color: #f1f5f9 !important; }
-        .status-select { padding: 4px 8px; border-radius: 4px; border: 1px solid #cbd5e1; background: white; }
+    .container { max-width: 1000px; margin: 2rem auto; padding: 0 1rem; }
+    .card { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
 
-        .modal { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(2px); }
-        .modal-content { background: white; margin: 10% auto; padding: 2rem; border-radius: 12px; width: 90%; max-width: 550px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); position: relative; animation: slideIn 0.3s ease-out; }
-        @keyframes slideIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .close-btn { position: absolute; top: 1rem; right: 1rem; font-size: 1.5rem; cursor: pointer; color: #94a3b8; }
+    textarea { width: 100%; height: 100px; padding: 0.75rem; margin-bottom: 1rem; border: 1px solid #cbd5e1; border-radius: 4px; font-family: inherit; box-sizing: border-box; resize: vertical; }
+    input[type="text"] { width: 100%; padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 4px; font-family: inherit; box-sizing: border-box; }
 
-        .reasoning-box { background: #f1f5f9; padding: 1.2rem; border-radius: 8px; margin-bottom: 1.5rem; border-left: 4px solid #94a3b8; }
-        .reasoning-header { margin: 0 0 0.5rem 0; font-size: 0.75rem; color: #64748b; text-transform: uppercase; font-weight: bold; }
-        .reasoning-text { margin: 0; font-size: 0.9rem; line-height: 1.5; color: #334155; font-style: italic; }
+    .btn { background: var(--primary); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 4px; cursor: pointer; font-weight: 600; transition: 0.2s; }
+    .btn:hover { background: #0d9488; }
+    .btn:disabled { background: #94a3b8; cursor: not-allowed; }
 
-        #result-area { margin-top: 2rem; border-top: 2px solid #e2e8f0; padding-top: 2rem; display: none; }
-        .message-box { background: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid var(--primary); padding: 1rem; margin-bottom: 1rem; white-space: pre-wrap; font-size: 0.9rem; }
-        .risk-badge { display: inline-block; padding: 4px 10px; border-radius: 9999px; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; }
-        .steps-list { padding-left: 1.25rem; margin-top: 1rem; }
-        .steps-list li { margin-bottom: 0.75rem; color: #475569; line-height: 1.4; }
-    </style>
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; background: white; }
+    th, td { border-bottom: 1px solid #e2e8f0; padding: 14px; text-align: left; }
+    th { background-color: #f1f5f9; font-weight: 600; color: #475569; }
+
+    .clickable-row { cursor: pointer; transition: background 0.2s; }
+    .clickable-row:hover { background-color: #f1f5f9 !important; }
+    .status-select { padding: 4px 8px; border-radius: 4px; border: 1px solid #cbd5e1; background: white; }
+
+    .modal { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(2px); }
+    .modal-content { background: white; margin: 8% auto; padding: 2rem; border-radius: 12px; width: 90%; max-width: 650px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); position: relative; animation: slideIn 0.15s ease-out; }
+    @keyframes slideIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .close-btn { position: absolute; top: 1rem; right: 1rem; font-size: 1.5rem; cursor: pointer; color: #94a3b8; }
+
+    .reasoning-box { background: #f1f5f9; padding: 1.2rem; border-radius: 8px; margin-bottom: 1.5rem; border-left: 4px solid #94a3b8; }
+    .reasoning-header { margin: 0 0 0.5rem 0; font-size: 0.75rem; color: #64748b; text-transform: uppercase; font-weight: bold; }
+    .reasoning-text { margin: 0; font-size: 0.9rem; line-height: 1.5; color: #334155; font-style: italic; }
+
+    #result-area { margin-top: 2rem; border-top: 2px solid #e2e8f0; padding-top: 2rem; display: none; }
+    .message-box { background: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid var(--primary); padding: 1rem; margin-bottom: 1rem; white-space: pre-wrap; font-size: 0.9rem; }
+    .risk-badge { display: inline-block; padding: 4px 10px; border-radius: 9999px; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; }
+    .steps-list { padding-left: 1.25rem; margin-top: 1rem; }
+    .steps-list li { margin-bottom: 0.6rem; color: #475569; line-height: 1.4; }
+
+    .grid-two { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    @media (max-width: 720px) {
+      .grid-two { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
 <body>
+  <nav>
+    <h1>Vunoh Global Assistant</h1>
+    <button onclick="switchView('new-task-view')">New Request</button>
+    <button onclick="switchView('dashboard-view')">Task Dashboard</button>
+  </nav>
 
-    <nav>
-        <h1>Vunoh Global Assistant</h1>
-        <button onclick="switchView('new-task-view')">New Request</button>
-        <button onclick="switchView('dashboard-view')">Task Dashboard</button>
-    </nav>
+  <div class="container">
+    <!-- NEW REQUEST VIEW -->
+    <div id="new-task-view" class="card view-section">
+      <h2 style="margin-top:0">Initiate a Diaspora Request</h2>
+      <p style="color:#64748b">Submit your request in plain English. The AI will extract intent, score risk, generate steps, and assign a team.</p>
 
-    <div class="container">
-        <div id="new-task-view" class="card view-section">
-            <h2 style="margin-top:0">Initiate a Diaspora Request</h2>
-            <p style="color: #64748b">Submit your request in plain English. The AI will extract intent, risk, and generate steps.</p>
-            <textarea id="taskInput" placeholder="e.g., I need to transfer 4,500 USD to Peter Kamau for the townhouse project in Nairobi..."></textarea>
-            <button id="submitBtn" class="btn" onclick="submitTask()">Analyze & Process</button>
-
-            <div id="result-area">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h3>Task: <span id="res-code" style="color: var(--primary)"></span></h3>
-                    <span id="res-risk" class="risk-badge"></span>
-                </div>
-                <p><strong>Intent:</strong> <span id="res-intent"></span> | <strong>Assigned Team:</strong> <span id="res-team"></span></p>
-                <strong>WhatsApp</strong><div id="res-whatsapp" class="message-box"></div>
-                <strong>Official Email</strong><div id="res-email" class="message-box"></div>
-                <strong>SMS</strong><div id="res-sms" class="message-box"></div>
-            </div>
+      <div class="grid-two">
+        <div>
+          <h3 style="margin:0 0 0.5rem 0;">Create a new task</h3>
+          <textarea id="taskInput" placeholder="e.g., I need to send KES 15,000 to my mother in Kisumu urgently."></textarea>
+          <button id="submitBtn" class="btn" onclick="submitTask()">Analyze & Process</button>
         </div>
 
-        <div id="dashboard-view" class="card view-section" style="display: none;">
-            <h2 style="margin-top:0">Operational Dashboard</h2>
-            <p style="color: #64748b; font-size: 0.9rem;">Click any row to view <strong>AI Logic Breakdown</strong> and steps.</p>
-            <table id="taskTable">
-                <thead>
-                    <tr>
-                        <th>Task Code</th>
-                        <th>Intent</th>
-                        <th>Risk</th>
-                        <th>Assigned Team</th>
-                        <th>Status</th>
-                        <th>Created At</th>
-                    </tr>
-                </thead>
-                <tbody id="task-tbody"></tbody>
-            </table>
+        <div>
+          <h3 style="margin:0 0 0.5rem 0;">Check status (by task code)</h3>
+          <p style="color:#64748b; margin-top:0;">Enter a code like <strong>VN-ABC123</strong> to retrieve an existing task.</p>
+          <input id="statusCodeInput" type="text" placeholder="VN-XXXXXX" />
+          <div style="height: 0.75rem;"></div>
+          <button id="checkBtn" class="btn" onclick="checkStatus()">Check Status</button>
         </div>
+      </div>
+
+      <div id="result-area">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <h3>Task: <span id="res-code" style="color:var(--primary)"></span></h3>
+          <span id="res-risk" class="risk-badge"></span>
+        </div>
+        <p>
+          <strong>Intent:</strong> <span id="res-intent"></span>
+          | <strong>Assigned Team:</strong> <span id="res-team"></span>
+          | <strong>Status:</strong> <span id="res-status"></span>
+        </p>
+
+
+        <strong>WhatsApp</strong><div id="res-whatsapp" class="message-box"></div>
+        <strong>Official Email</strong><div id="res-email" class="message-box"></div>
+        <strong>SMS</strong><div id="res-sms" class="message-box"></div>
+      </div>
     </div>
 
-    <div id="taskModal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn" onclick="closeModal()">&times;</span>
-            <h2 id="modalTitle" style="margin-top:0; color: var(--primary);"></h2>
-            <div id="modalMeta" style="font-size: 0.9rem; margin-bottom: 1.5rem; color: #64748b;"></div>
-            
-            <div class="reasoning-box">
-                <h4 class="reasoning-header">AI Logic Analysis</h4>
-                <p id="modalReasoning" class="reasoning-text"></p>
-            </div>
-
-            <hr style="border:0; border-top: 1px solid #e2e8f0;">
-            <h4 style="margin-top: 1.5rem; margin-bottom: 0.5rem;">Operational Execution Steps</h4>
-            <ul id="modalSteps" class="steps-list"></ul>
-        </div>
+    <!-- DASHBOARD VIEW -->
+    <div id="dashboard-view" class="card view-section" style="display:none;">
+      <h2 style="margin-top:0">Operational Dashboard</h2>
+      <p style="color:#64748b; font-size:0.9rem;">Click any row to view <strong>AI reasoning</strong>, steps, and <strong>status history</strong>.</p>
+      <table id="taskTable">
+        <thead>
+          <tr>
+            <th>Task Code</th>
+            <th>Intent</th>
+            <th>Risk</th>
+            <th>Assigned Team</th>
+            <th>Status</th>
+            <th>Created At</th>
+          </tr>
+        </thead>
+        <tbody id="task-tbody"></tbody>
+      </table>
     </div>
+  </div>
 
-    <script>
-        let allTasks = []; 
+  <!-- MODAL -->
+  <div id="taskModal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModal()">&times;</span>
+      <h2 id="modalTitle" style="margin-top:0; color:var(--primary);"></h2>
+      <div id="modalMeta" style="font-size:0.9rem; margin-bottom:1.25rem; color:#64748b;"></div>
 
-        function switchView(viewId) {
-            document.querySelectorAll('.view-section').forEach(el => el.style.display = 'none');
-            document.getElementById(viewId).style.display = 'block';
-            if (viewId === 'dashboard-view') loadDashboard();
+      <div class="reasoning-box">
+        <h4 class="reasoning-header">AI Logic Analysis</h4>
+        <p id="modalReasoning" class="reasoning-text"></p>
+      </div>
+
+      <hr style="border:0; border-top:1px solid #e2e8f0;">
+
+      <h4 style="margin-top:1.25rem; margin-bottom:0.5rem;">Operational Execution Steps</h4>
+      <ul id="modalSteps" class="steps-list"></ul>
+
+      <hr style="border:0; border-top:1px solid #e2e8f0; margin-top:1.25rem;">
+
+      <h4 style="margin-top:1.25rem; margin-bottom:0.5rem;">Status History</h4>
+      <div id="modalHistory" style="color:#475569; font-size:0.95rem;">
+        Loading history...
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let allTasks = [];
+
+    function switchView(viewId) {
+      document.querySelectorAll('.view-section').forEach(el => el.style.display = 'none');
+      document.getElementById(viewId).style.display = 'block';
+      if (viewId === 'dashboard-view') loadDashboard();
+    }
+
+    function setResultUI({ task_code, intent, assigned_team, status, risk_score, steps, messages }) {
+      document.getElementById('res-code').innerText = task_code || '';
+      document.getElementById('res-intent').innerText = (intent || '').replaceAll('_', ' ');
+      document.getElementById('res-team').innerText = assigned_team || '';
+      document.getElementById('res-status').innerText = status || '';
+
+      const risk = Number.isFinite(risk_score) ? risk_score : (risk_score ?? 0);
+      const rBadge = document.getElementById('res-risk');
+      rBadge.innerText = `Risk: ${risk}/100`;
+      rBadge.style.backgroundColor = risk > 50 ? '#fee2e2' : '#dcfce7';
+      rBadge.style.color = risk > 50 ? '#991b1b' : '#166534';
+
+      // Steps
+
+      // Messages
+      document.getElementById('res-whatsapp').innerText = (messages?.whatsapp) || '';
+      document.getElementById('res-email').innerText = (messages?.email) || '';
+      document.getElementById('res-sms').innerText = (messages?.sms) || '';
+
+      document.getElementById('result-area').style.display = 'block';
+    }
+
+    async function submitTask() {
+      const input = document.getElementById('taskInput').value;
+      if (!input.trim()) return alert("Please describe your request.");
+
+      const btn = document.getElementById('submitBtn');
+      btn.innerText = "Analyzing Context...";
+      btn.disabled = true;
+
+      try {
+        const response = await fetch('/api/process/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ request_text: input })
+        });
+
+        const result = await response.json();
+        if (result.status !== 'success') {
+          return alert(result.error || "Error processing request.");
         }
 
-        async function submitTask() {
-            const input = document.getElementById('taskInput').value;
-            if (!input.trim()) return alert("Please describe your request.");
-            const btn = document.getElementById('submitBtn');
-            btn.innerText = "Analyzing Context...";
-            btn.disabled = true;
+        // Note: API returns ai_data (result.data) + task_code + risk_score.
+        setResultUI({
+          task_code: result.task_code,
+          intent: result.data?.intent,
+          assigned_team: result.data?.employee_assignment,
+          status: "Pending",
+          risk_score: result.risk_score,
+          steps: result.data?.steps,
+          messages: result.data?.messages
+        });
 
-            try {
-                const response = await fetch('/api/process/', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ request_text: input })
-                });
-                const result = await response.json();
-                if (result.status === 'success') {
-                    document.getElementById('res-code').innerText = result.task_code;
-                    document.getElementById('res-intent').innerText = result.data.intent.replace('_', ' ');
-                    document.getElementById('res-team').innerText = result.data.employee_assignment;
-                    document.getElementById('res-whatsapp').innerText = result.data.messages.whatsapp;
-                    document.getElementById('res-email').innerText = result.data.messages.email;
-                    document.getElementById('res-sms').innerText = result.data.messages.sms;
-                    const risk = result.risk_score;
-                    const rBadge = document.getElementById('res-risk');
-                    rBadge.innerText = `Risk: ${risk}/100`;
-                    rBadge.style.backgroundColor = risk > 50 ? '#fee2e2' : '#dcfce7';
-                    rBadge.style.color = risk > 50 ? '#991b1b' : '#166534';
-                    document.getElementById('result-area').style.display = 'block';
-                    document.getElementById('taskInput').value = '';
-                }
-            } catch (e) { alert("Server error."); }
-            finally { btn.innerText = "Analyze & Process"; btn.disabled = false; }
+        document.getElementById('taskInput').value = '';
+      } catch (e) {
+        alert("Server error.");
+      } finally {
+        btn.innerText = "Analyze & Process";
+        btn.disabled = false;
+      }
+    }
+
+    async function checkStatus() {
+      const code = document.getElementById('statusCodeInput').value.trim();
+      if (!code) return alert("Enter a task code.");
+
+      const btn = document.getElementById('checkBtn');
+      btn.innerText = "Checking...";
+      btn.disabled = true;
+
+      try {
+        const response = await fetch('/api/check-status/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ task_code: code })
+        });
+
+        const result = await response.json();
+        if (result.status !== 'success') {
+          return alert(result.error || "Could not fetch status.");
         }
 
-        async function loadDashboard() {
-            const tbody = document.getElementById('task-tbody');
-            tbody.innerHTML = '<tr><td colspan="6">Syncing tasks...</td></tr>';
-            try {
-                const response = await fetch('/api/tasks/');
-                const data = await response.json();
-                allTasks = data.tasks;
-                tbody.innerHTML = '';
-                allTasks.forEach(task => {
-                    const row = document.createElement('tr');
-                    row.className = 'clickable-row';
-                    row.addEventListener('click', () => openTaskModal(task.task_code));
+        const t = result.task;
+        setResultUI({
+          task_code: t.task_code,
+          intent: t.intent,
+          assigned_team: t.assigned_team,
+          status: t.status,
+          risk_score: t.risk_score,
+          steps: t.steps,
+          messages: t.messages
+        });
+      } catch (e) {
+        alert("Server error.");
+      } finally {
+        btn.innerText = "Check Status";
+        btn.disabled = false;
+      }
+    }
 
-                    // FIX: Shows both Date and Time (e.g., 16 Apr 2026, 16:54)
-                    const timeStr = new Date(task.created_at).toLocaleString('en-GB', {
-                        day: '2-digit', month: 'short', year: 'numeric',
-                        hour: '2-digit', minute: '2-digit'
-                    });
-                    
-                    row.innerHTML = `
-                        <td><strong>${task.task_code}</strong></td>
-                        <td style="text-transform: capitalize;">${task.intent.replace('_', ' ')}</td>
-                        <td><span style="color: ${task.risk_score > 50 ? '#ef4444' : '#10b981'}">${task.risk_score}</span></td>
-                        <td>${task.assigned_team}</td>
-                        <td>
-                            <select class="status-select" onclick="event.stopPropagation()" onchange="updateTaskStatus(${task.id}, this.value)">
-                                <option value="Pending" ${task.status === 'Pending' ? 'selected' : ''}>Pending</option>
-                                <option value="In Progress" ${task.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
-                                <option value="Completed" ${task.status === 'Completed' ? 'selected' : ''}>Completed</option>
-                            </select>
-                        </td>
-                        <td>${timeStr}</td>
-                    `;
-                    tbody.appendChild(row);
-                });
-            } catch (e) { tbody.innerHTML = '<tr><td colspan="6">Error loading data.</td></tr>'; }
+    async function loadDashboard() {
+      const tbody = document.getElementById('task-tbody');
+      tbody.innerHTML = '<tr><td colspan="6">Syncing tasks...</td></tr>';
+
+      try {
+        const response = await fetch('/api/tasks/');
+        const data = await response.json();
+        allTasks = data.tasks || [];
+        tbody.innerHTML = '';
+
+        allTasks.forEach(task => {
+          const row = document.createElement('tr');
+          row.className = 'clickable-row';
+          row.addEventListener('click', () => openTaskModal(task.id));
+
+          const timeStr = new Date(task.created_at).toLocaleString('en-GB', {
+            day: '2-digit', month: 'short', year: 'numeric',
+            hour: '2-digit', minute: '2-digit'
+          });
+
+          row.innerHTML = `
+            <td><strong>${task.task_code}</strong></td>
+            <td style="text-transform: capitalize;">${(task.intent || '').replaceAll('_', ' ')}</td>
+            <td><span style="color: ${task.risk_score > 50 ? '#ef4444' : '#10b981'}">${task.risk_score}</span></td>
+            <td>${task.assigned_team}</td>
+            <td>
+              <select class="status-select" onclick="event.stopPropagation()" onchange="updateTaskStatus(${task.id}, this.value)">
+                <option value="Pending" ${task.status === 'Pending' ? 'selected' : ''}>Pending</option>
+                <option value="In Progress" ${task.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
+                <option value="Completed" ${task.status === 'Completed' ? 'selected' : ''}>Completed</option>
+              </select>
+            </td>
+            <td>${timeStr}</td>
+          `;
+          tbody.appendChild(row);
+        });
+
+        if (!allTasks.length) {
+          tbody.innerHTML = '<tr><td colspan="6">No tasks found.</td></tr>';
         }
+      } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="6">Error loading data.</td></tr>';
+      }
+    }
 
-        function openTaskModal(code) {
-            const task = allTasks.find(t => t.task_code === code);
-            if (!task) return;
-            document.getElementById('modalTitle').innerText = task.task_code;
-            document.getElementById('modalMeta').innerText = `Intent: ${task.intent.replace('_', ' ')} | Team: ${task.assigned_team}`;
-            document.getElementById('modalReasoning').innerText = task.reasoning || "Analysis complete.";
-            const stepsUl = document.getElementById('modalSteps');
-            stepsUl.innerHTML = '';
-            (Array.isArray(task.steps) ? task.steps : []).forEach(s => {
-                const li = document.createElement('li');
-                li.innerText = s;
-                stepsUl.appendChild(li);
+    async function updateTaskStatus(id, newStatus) {
+      await fetch(`/api/tasks/${id}/status/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      });
+    }
+
+    async function openTaskModal(taskId) {
+      const task = allTasks.find(t => t.id === taskId);
+      if (!task) return;
+
+      document.getElementById('modalTitle').innerText = task.task_code;
+      document.getElementById('modalMeta').innerText = `Intent: ${(task.intent || '').replaceAll('_', ' ')} | Team: ${task.assigned_team} | Status: ${task.status}`;
+      document.getElementById('modalReasoning').innerText = task.reasoning || "Analysis complete.";
+
+      const stepsUl = document.getElementById('modalSteps');
+      stepsUl.innerHTML = '';
+      (Array.isArray(task.steps) ? task.steps : []).forEach(s => {
+        const li = document.createElement('li');
+        li.innerText = s;
+        stepsUl.appendChild(li);
+      });
+
+      // Load status history
+      const historyDiv = document.getElementById('modalHistory');
+      historyDiv.innerText = "Loading history...";
+
+      try {
+        const resp = await fetch(`/api/tasks/${taskId}/history/`);
+        const data = await resp.json();
+        const hist = data.history || [];
+
+        if (!hist.length) {
+          historyDiv.innerText = "No status changes recorded yet.";
+        } else {
+          const lines = hist.map(h => {
+            const when = new Date(h.changed_at).toLocaleString('en-GB', {
+              day: '2-digit', month: 'short', year: 'numeric',
+              hour: '2-digit', minute: '2-digit'
             });
-            document.getElementById('taskModal').style.display = 'block';
+            const from = h.from_status ? h.from_status : "—";
+            return `${when}: ${from} → ${h.to_status}`;
+          });
+          historyDiv.innerHTML = `<div style="white-space: pre-wrap; line-height: 1.6;">${lines.join("\n")}</div>`;
         }
+      } catch (e) {
+        historyDiv.innerText = "Could not load history.";
+      }
 
-        function closeModal() { document.getElementById('taskModal').style.display = 'none'; }
+      document.getElementById('taskModal').style.display = 'block';
+    }
 
-        async function updateTaskStatus(id, newStatus) {
-            await fetch(`/api/tasks/${id}/status/`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status: newStatus })
-            });
-        }
+    function closeModal() {
+      document.getElementById('taskModal').style.display = 'none';
+    }
 
-        window.onclick = function(e) { if (e.target == document.getElementById('taskModal')) closeModal(); }
-    </script>
+    window.onclick = function(e) {
+      if (e.target === document.getElementById('taskModal')) closeModal();
+    }
+  </script>
 </body>
 </html>
