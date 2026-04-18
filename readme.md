@@ -1,6 +1,6 @@
 # Vunoh Global — AI Internship Practical Test (AI-Powered Diaspora Assistant)
 
-This project is an AI-powered web assistant that helps Kenyans living abroad initiate and track important tasks back home. The assistant understands a plain-English request, extracts intent + entities, scores risk, generates a structured task, assigns it to the correct internal team, and produces confirmation messages in formats customers actually use.
+This project is an AI-powered web assistant that helps Kenyans living abroad initiate and track important tasks back home. The assistant understands a plain-English request, extracts intent + entities, calculates risk, generates steps, assigns a team, and produces customer-friendly messages.
 
 **Live Demo:** https://ai-intern-practical-test.onrender.com/
 
@@ -273,10 +273,12 @@ This reduced inconsistent outputs and made backend parsing reliable.
 - I avoided complex “employee tables” since the test explicitly allows a simplified assignment model.
 
 ### One decision where I overrode what AI suggested
-Early risk scoring suggestions tended to be too generic (low/medium/high buckets). I replaced that with an additive scoring approach so risk is a real numeric spectrum (0–100) influenced by amount, urgency, and document type.
+The LLM initially suggested a **coarse risk_level bucket** (low/medium/high) and a short explanation. I replaced that with a **numeric 0–100 risk score** and additive modifiers (base per intent, amount thresholds, urgency, and document type). This makes risk **comparable across tasks** and easy to store, display, and sort in the dashboard.
+
+I also forced the model to output a **[Task Code] placeholder** in messages and then replaced it server‑side, because the model tended to invent fake codes. That ensured **every message contains the real task code**.
 
 ### One thing that didn’t work as expected (and how I resolved it)
-Sometimes LLM outputs can be too short or skip constraints (especially reasoning detail). To fix this:
+Sometimes LLM outputs were too short or skipped constraints (especially reasoning detail). To fix this:
 - the prompt enforces a bullet-count requirement for reasoning
 - if the model output is insufficient, the backend retries once with a stricter nudge
 
