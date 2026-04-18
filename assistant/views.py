@@ -13,7 +13,33 @@ def index(request):
     return render(request, "index.html")
 
 
-# 2) Risk scoring (same logic you had, kept intact)
+def _inject_task_code(text: str, task_code: str) -> str:
+    """
+    Ensures messages contain the real task code.
+    Replaces common placeholders/fake codes and prefixes if missing.
+    """
+    text = (text or "").strip()
+
+    placeholders = [
+        "[Task Code]",
+        "[TASK CODE]",
+        "{Task Code}",
+        "{TASK_CODE}",
+        "VN1234",
+        "SM001",
+        "VN001",
+        "VM001",
+    ]
+    for ph in placeholders:
+        text = text.replace(ph, task_code)
+
+    if task_code not in text:
+        text = f"{task_code} — {text}".strip()
+
+    return text
+
+
+# 2) Risk scoring
 def calculate_risk_score(intent, entities):
     base_risks = {
         "verify_document": 35,
@@ -91,47 +117,48 @@ def process_task(request):
 
         # 3) Create task record
         task = Task.objects.create(
-            intent=ai_data.get('intent', 'unknown'),
-            entities=ai_data.get('entities', {}),
+            intent=intent,
+            entities=entities,
             risk_score=calculated_risk,
-            reasoning=ai_data.get('reasoning', ''),   # keep this
-            assigned_team=ai_data.get('employee_assignment', 'General'),
-            steps=ai_data.get('steps', []), 
+            reasoning=ai_data.get("reasoning", ""),
+            assigned_team=ai_data.get("employee_assignment", "General"),
+            steps=ai_data.get("steps", []),
         )
 
         # 4) Save messages (replace placeholders with real code)
-        raw_whatsapp = (ai_data.get("messages") or {}).get("whatsapp", "") or ""
-        raw_email = (ai_data.get("messages") or {}).get("email", "") or ""
-        raw_sms = (ai_data.get("messages") or {}).get("sms", "") or ""
+        raw_messages = ai_data.get("messages") or {}
+        raw_whatsapp = raw_messages.get("whatsapp", "") or ""
+        raw_email = raw_messages.get("email", "") or ""
+        raw_sms = raw_messages.get("sms", "") or ""
 
-        task.whatsapp_message = (
-            raw_whatsapp.replace("[Task Code]", task.task_code).replace("VN1234", task.task_code)
-        )
-        task.email_message = (
-            raw_email.replace("[Task Code]", task.task_code).replace("VN1234", task.task_code)
-        )
-        task.sms_message = (
-            raw_sms.replace("[Task Code]", task.task_code).replace("VN1234", task.task_code)
-        )
+        task.whatsapp_message = _inject_task_code(raw_whatsapp, task.task_code)
+        task.email_message = _inject_task_code(raw_email, task.task_code)
 
-        # Safety net: enforce SMS limit
-        task.sms_message = (task.sms_message or "")[:160]
+        # SMS: must contain task code + be <= 160 chars
+        task.sms_message = _inject_task_code(raw_sms, task.task_code)[:160]
 
         task.save()
 
-        # Optional: record initial status history (nice for audit trail)
+        # 5) Record initial status history (audit trail)
         TaskStatusHistory.objects.create(
             task=task,
             from_status=None,
             to_status=task.status,
         )
 
+        # IMPORTANT:
+        # Return the *saved* messages so the New Request UI doesn't show raw "[Task Code]" placeholders.
         return JsonResponse(
             {
                 "status": "success",
                 "task_code": task.task_code,
                 "risk_score": calculated_risk,
                 "data": ai_data,
+                "saved_messages": {
+                    "whatsapp": task.whatsapp_message,
+                    "email": task.email_message,
+                    "sms": task.sms_message,
+                },
             }
         )
 
@@ -193,7 +220,7 @@ def update_task_status(request, task_id):
         return JsonResponse({"error": str(e)}, status=500)
 
 
-# 6) Status history endpoint (optional but useful)
+# 6) Status history endpoint
 def get_task_history(request, task_id):
     history = (
         TaskStatusHistory.objects.filter(task_id=task_id)
@@ -203,7 +230,7 @@ def get_task_history(request, task_id):
     return JsonResponse({"history": list(history)})
 
 
-# 7) Customer follow-up: check status by task code (implements "check_status" feature)
+# 7) Customer follow-up: check status by task code
 @csrf_exempt
 def check_status(request):
     if request.method != "POST":

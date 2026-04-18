@@ -195,7 +195,10 @@
         if (result.status !== 'success') {
           return alert(result.error || "Error processing request.");
         }
-
+        
+        console.log("saved_messages.sms:", result.saved_messages?.sms);
+        console.log("raw sms:", result.data?.messages?.sms);
+        
         // Note: API returns ai_data (result.data) + task_code + risk_score.
         setResultUI({
           task_code: result.task_code,
@@ -204,7 +207,7 @@
           status: "Pending",
           risk_score: result.risk_score,
           steps: result.data?.steps,
-          messages: result.data?.messages
+          messages: result.saved_messages || result.data?.messages 
         });
 
         document.getElementById('taskInput').value = '';

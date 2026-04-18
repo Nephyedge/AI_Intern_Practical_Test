@@ -27,6 +27,12 @@ EMPLOYEE ASSIGNMENT (choose exactly one):
 - Operations
 - Legal
 
+EMPLOYEE ASSIGNMENT RULES:
+- If intent is send_money, employee_assignment MUST be Finance
+- If intent is verify_document, employee_assignment MUST be Legal
+- If intent is hire_service or get_airport_transfer, employee_assignment MUST be Operations
+- If intent is check_status, employee_assignment MUST be Operations
+
 URGENCY (choose exactly one):
 - high
 - medium
@@ -41,11 +47,16 @@ REASONING REQUIREMENT (must follow exactly):
   3) Which entities were extracted and why they matter operationally
   4) Why the employee_assignment is the correct team for Kenya context
   5) Any risk signals noticed (urgency, large amount, land/title, unknown recipient, etc.)
+- At least 2 bullets must mention Kenyan context (fraud risk, local verification, service coordination realities).
 
 MESSAGES REQUIREMENT (must be clearly different):
-- whatsapp: conversational, concise, natural line breaks, MAY include 1–2 relevant emojis
-- email: formal, structured, includes: "Subject: Task Confirmation: [Task Code]"
-- sms: MUST be <= 160 characters, must include task code and key action
+- whatsapp: conversational, concise, uses line breaks naturally, may include 1–2 relevant emojis
+- email: formal, structured, includes: "Subject: Task Confirmation: [Task Code]" and full details
+- sms: MUST be <= 160 characters, includes [Task Code] and key action only (no long explanation)
+
+Rules:
+- DO NOT invent a real task code. Always use the placeholder [Task Code].
+- SMS must be <= 160 characters (hard limit).
 
 OUTPUT JSON SCHEMA (exact keys):
 {
@@ -67,6 +78,11 @@ OUTPUT JSON SCHEMA (exact keys):
   },
   "employee_assignment": "Finance|Operations|Legal"
 }
+
+SANITY CHECKS:
+- Do not assume illegal or suspicious transactions.
+- If the recipient looks like a restaurant/retail purchase (e.g., KFC, Amazon) and the intent is send_money, treat it as send_money only if the user explicitly says they are transferring money to that entity in Kenya.
+- If the request is ambiguous, choose the closest intent and put clarification needs in entities.notes.
 """
 
     def call_llm():
