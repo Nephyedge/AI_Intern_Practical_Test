@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-def process_with_gemini(user_input: str):
+def process_with_groq(user_input: str):
     client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
     model_id = "llama-3.3-70b-versatile"
 

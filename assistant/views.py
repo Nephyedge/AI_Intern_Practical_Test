@@ -5,7 +5,7 @@ from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 
 from .models import Task, TaskStatusHistory
-from .utils import process_with_gemini
+from .utils import process_with_groq
 
 
 # 1) Frontend view
@@ -81,7 +81,7 @@ def process_task(request):
             return JsonResponse({"error": "No input provided"}, status=400)
 
         # 1) AI extraction/generation
-        ai_data = process_with_gemini(user_input)
+        ai_data = process_with_groq(user_input)
 
         intent = ai_data.get("intent", "unknown")
         entities = ai_data.get("entities", {}) or {}
