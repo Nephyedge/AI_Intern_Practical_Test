@@ -292,8 +292,5 @@ This produced consistently detailed “AI Logic Analysis” in the dashboard.
 - Static files served with **WhiteNoise**
 - Uses environment variables:
   - `GROQ_API_KEY`
-  - `SECRET_KEY`
-  - `DEBUG`
-
 ---
 
