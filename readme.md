@@ -18,7 +18,7 @@ Customers type a plain-English request. The system uses Groq (LLaMA 3) to extrac
 |---|---|
 | Backend | Django 6.0 |
 | Frontend | HTML, CSS, Vanilla JavaScript |
-| Database | SQLite (local) / PostgreSQL via psycopg2 (production) |
+| Database | SQLite  |
 | AI | Groq API — LLaMA 3 |
 | Hosting | Render (gunicorn + whitenoise) |
 
@@ -109,7 +109,7 @@ The AI generates intent-specific fulfilment steps — e.g. a money transfer gets
 ### 5. Three-Format Messages
 | Format | Style |
 |---|---|
-| WhatsApp | Conversational, line breaks, 1–2 emojis |
+| WhatsApp | Conversational, line breaks|
 | Email | Formal, subject line, full task details |
 | SMS | Under 160 characters, task code + key action only |
 
@@ -164,7 +164,7 @@ This produces results like: a KES 600 low-urgency birthday transfer scores 5, a 
 ## Decisions I Made and Why
 
 ### AI tools used
-I used Claude for help designing the system prompt structure and for debugging Django view logic when the JSON parsing was failing on certain Groq responses. I used Groq's playground to test prompt variations before committing to the final format. Cursor assisted with boilerplate Django setup.
+I use Groq’s Llama 3.3 70B model as my primary reasoning engine for intent extraction and task generation because it combines strong reasoning with sub-second inference speeds. This allows me to quickly interpret user inputs and generate actionable tasks while maintaining a smooth, responsive user experience.
 
 ### System prompt design
 The core of the system prompt instructs the model to return only valid JSON with a fixed schema — no preamble, no explanation, no markdown fences. The schema specifies every field: `intent`, `entities` (with typed sub-fields), `risk_score`, `steps` (as an array), `whatsapp_message`, `email_message`, `sms_message`, `assigned_team`, and `reasoning`.

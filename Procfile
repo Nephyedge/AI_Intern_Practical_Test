@@ -1,0 +1,1 @@
+web: gunicorn vunoh_backend.wsgi:application --log-file -
