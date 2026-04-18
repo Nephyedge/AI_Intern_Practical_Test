@@ -84,8 +84,6 @@ Add:
 
 ```env
 GROQ_API_KEY=your_groq_api_key_here
-SECRET_KEY=your_django_secret_key_here
-DEBUG=True
 ```
 
 > Get a free Groq API key from the Groq console.
@@ -299,9 +297,3 @@ This produced consistently detailed “AI Logic Analysis” in the dashboard.
 
 ---
 
-## Deliverables Checklist
-- [x] Source code in GitHub
-- [x] README with setup instructions + “Decisions I made and why”
-- [x] SQL dump committed in repo (`schema.sql`)
-- [x] Sample tasks in SQL dump (>= 5) with complete data
-- [x] Hosted link (optional): https://ai-intern-practical-test.onrender.com/
