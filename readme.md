@@ -141,19 +141,19 @@ The UI displays:
 
 ## Feature Checklist (Mapped to the Test Spec)
 
-### 1. User Input ✅
+### 1. User Input 
 - Simple plain-text input on the frontend.
 
-### 2. AI Intent Extraction ✅
+### 2. AI Intent Extraction 
 The AI returns structured JSON containing:
 - `intent`: one of  
   `send_money`, `get_airport_transfer`, `hire_service`, `verify_document`, `check_status`
 - `entities`: extracted operational data (amount, recipient, location, document type, urgency)
 
-### 3. Risk Scoring ✅
+### 3. Risk Scoring 
 A 0–100 risk score is calculated and stored with each task and displayed in the UI.
 
-### 4. Task Creation ✅
+### 4. Task Creation 
 Each request creates a DB record with:
 - unique task code (`VN-XXXXXX`)
 - intent + entities
@@ -161,10 +161,10 @@ Each request creates a DB record with:
 - status
 - created timestamp
 
-### 5. Step Generation ✅
+### 5. Step Generation 
 The AI generates a logical step sequence to fulfil the task and it is persisted to the database.
 
-### 6. Three-Format Messages ✅
+### 6. Three-Format Messages 
 For each task, the system generates and stores:
 - WhatsApp-style message (conversational, line breaks, may include emoji)
 - Email-style message (formal + structured, includes task code)
@@ -174,7 +174,7 @@ All messages are:
 - saved to the database
 - displayed in the UI
 
-### 7. Employee Assignment ✅
+### 7. Employee Assignment 
 AI assigns a team category:
 - `send_money` → Finance
 - `hire_service` / `get_airport_transfer` → Operations
@@ -182,7 +182,7 @@ AI assigns a team category:
 
 Stored in DB and visible in UI.
 
-### 8. Task Dashboard ✅
+### 8. Task Dashboard 
 Dashboard lists all tasks with:
 - task code
 - intent
@@ -193,7 +193,7 @@ Dashboard lists all tasks with:
 
 Status updates persist immediately.
 
-### 9. Database Persistence + SQL Dump ✅
+### 9. Database Persistence + SQL Dump 
 Everything is persisted:
 - tasks
 - extracted entities
